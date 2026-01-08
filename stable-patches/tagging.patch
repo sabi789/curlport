@@ -1,56 +1,3 @@
-diff --git a/src/tool_cb_wrt.c b/src/tool_cb_wrt.c
-index 724706b..b9d2f34 100644
---- a/src/tool_cb_wrt.c
-+++ b/src/tool_cb_wrt.c
-@@ -28,6 +28,13 @@
- #include "tool_cb_wrt.h"
- #include "tool_operate.h"
- 
-+#ifdef __MVS__
-+#include <zos.h>
-+#include <fcntl.h>
-+#include <_Ccsid.h>
-+
-+#endif
-+
- #include "memdebug.h" /* keep this as LAST include */
- 
- #ifdef _WIN32
-@@ -101,6 +108,17 @@ bool tool_create_output_file(struct OutStruct *outs,
-           curlx_strerror(errno, errbuf, sizeof(errbuf)));
-     return FALSE;
-   }
-+
-+#ifdef __MVS__
-+  if(config->local_ccsid) {
-+    int fd = fileno(file);
-+    if(config->local_ccsid == 65535)
-+      __chgfdccsid(fd, FT_BINARY);
-+    else
-+      __chgfdccsid(fd, (int)config->local_ccsid);
-+  }
-+#endif
-+
-   outs->s_isreg = TRUE;
-   outs->fopened = TRUE;
-   outs->stream = file;
-@@ -310,6 +328,16 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
-   if(!outs->stream && !tool_create_output_file(outs, per->config))
-     return CURL_WRITEFUNC_ERROR;
- 
-+#ifdef __MVS__
-+  if(config->local_ccsid == 0 && outs->bytes == 0 && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
-+    int ccsid = __guess_ue(buffer, bytes, NULL, 0);
-+    if(ccsid == 65535)
-+      __chgfdccsid(fileno(outs->stream), FT_BINARY);
-+    else
-+      __chgfdccsid(fileno(outs->stream), ccsid);
-+  }
-+#endif
-+
-   if(is_tty && (outs->bytes < 2000) && !config->terminal_binary_ok) {
-     /* binary output to terminal? */
-     if(memchr(buffer, 0, bytes)) {
 diff --git a/src/tool_cfgable.h b/src/tool_cfgable.h
 index 630f23f..9c08dda 100644
 --- a/src/tool_cfgable.h
@@ -159,3 +106,56 @@ index f290a28..0d90389 100644
      outs->fopened = TRUE;
      outs->stream = file;
      outs->init = config->resume_from;
+diff --git i/src/tool_cb_wrt.c w/src/tool_cb_wrt.c
+index 1b76565..d890b15 100644
+--- i/src/tool_cb_wrt.c
++++ w/src/tool_cb_wrt.c
+@@ -28,6 +28,13 @@
+ #include "tool_cb_wrt.h"
+ #include "tool_operate.h"
+ 
++#ifdef __MVS__
++#include <zos.h>
++#include <fcntl.h>
++#include <_Ccsid.h>
++
++#endif
++
+ #ifdef _WIN32
+ #define OPENMODE S_IREAD | S_IWRITE
+ #else
+@@ -99,6 +106,17 @@ bool tool_create_output_file(struct OutStruct *outs,
+           curlx_strerror(errno, errbuf, sizeof(errbuf)));
+     return FALSE;
+   }
++
++#ifdef __MVS__
++  if(config->local_ccsid) {
++    int fd = fileno(file);
++    if(config->local_ccsid == 65535)
++      __chgfdccsid(fd, FT_BINARY);
++    else
++      __chgfdccsid(fd, (int)config->local_ccsid);
++  }
++#endif
++
+   outs->s_isreg = TRUE;
+   outs->fopened = TRUE;
+   outs->stream = file;
+@@ -308,6 +326,16 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+   if(!outs->stream && !tool_create_output_file(outs, per->config))
+     return CURL_WRITEFUNC_ERROR;
+ 
++#ifdef __MVS__
++  if(config->local_ccsid == 0 && outs->bytes == 0 && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
++    int ccsid = __guess_ue(buffer, bytes, NULL, 0);
++    if(ccsid == 65535)
++      __chgfdccsid(fileno(outs->stream), FT_BINARY);
++    else
++      __chgfdccsid(fileno(outs->stream), ccsid);
++  }
++#endif
++
+   if(is_tty && (outs->bytes < 2000) && !config->terminal_binary_ok) {
+     /* binary output to terminal? */
+     if(memchr(buffer, 0, bytes)) {
