@@ -1,0 +1,58 @@
+diff --git i/src/tool_cb_rea.c w/src/tool_cb_rea.c
+index 5ad4f7e..69b87d1 100644
+--- i/src/tool_cb_rea.c
++++ w/src/tool_cb_rea.c
+@@ -136,15 +136,31 @@ size_t tool_read_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+ #endif
+   }
+   else {
+-    rc = read(per->infd, buffer, sz * nmemb);
+-    if(rc < 0) {
+-      if(errno == EAGAIN) {
+-        errno = 0;
+-        config->readbusy = TRUE;
+-        return CURL_READFUNC_PAUSE;
++#ifdef __MVS__
++    /* z/OS: Use fread for datasets opened with fopen */
++    if(per->use_fopen && per->infp) {
++      rc = (ssize_t)fread(buffer, 1, sz * nmemb, per->infp);
++      if(rc == 0) {
++        if(ferror(per->infp)) {
++          /* Read error occurred */
++          rc = 0;
++        }
++        /* else EOF, rc stays 0 which is correct */
++      }
++    }
++    else
++#endif
++    {
++      rc = read(per->infd, buffer, sz * nmemb);
++      if(rc < 0) {
++        if(errno == EAGAIN) {
++          errno = 0;
++          config->readbusy = TRUE;
++          return CURL_READFUNC_PAUSE;
++        }
++        /* since size_t is unsigned we cannot return negative values fine */
++        rc = 0;
+       }
+-      /* since size_t is unsigned we cannot return negative values fine */
+-      rc = 0;
+     }
+   }
+   if((per->uploadfilesize != -1) &&
+@@ -156,6 +172,13 @@ size_t tool_read_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+           delta);
+     rc = (ssize_t)(per->uploadfilesize - per->uploadedsofar);
+   }
++
++#ifdef __MVS__
++  if(rc > 0 && per->convert_ascii) {
++    __e2a_s(buffer);
++  }
++#endif
++
+   config->readbusy = FALSE;
+ 
+   /* when select() returned zero here, it timed out */

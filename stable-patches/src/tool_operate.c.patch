@@ -1,0 +1,114 @@
+diff --git i/src/tool_operate.c w/src/tool_operate.c
+index 4bc98a1..03c9dad 100644
+--- i/src/tool_operate.c
++++ w/src/tool_operate.c
+@@ -23,6 +23,13 @@
+  ***************************************************************************/
+ #include "tool_setup.h"
+ 
++#ifdef __MVS__
++#include <zos.h>
++#include <fcntl.h>
++#include <_Ccsid.h>
++
++#endif
++
+ #ifdef HAVE_LOCALE_H
+ #  include <locale.h>
+ #endif
+@@ -244,6 +251,17 @@ static struct per_transfer *del_per_transfer(struct per_transfer *per)
+   return n;
+ }
+ 
++#ifdef __MVS__
++/* Check if filename is a z/OS dataset (starts with //) */
++static int is_dataset(const char *filename)
++{
++  if(filename == NULL || strlen(filename) < 2)
++    return 0;
++  
++  return (filename[0] == '/' && filename[1] == '/');
++}
++#endif
++
+ static CURLcode pre_transfer(struct per_transfer *per)
+ {
+   curl_off_t uploadfilesize = -1;
+@@ -251,6 +269,26 @@ static CURLcode pre_transfer(struct per_transfer *per)
+   CURLcode result = CURLE_OK;
+ 
+   if(per->uploadfile && !stdin_upload(per->uploadfile)) {
++#ifdef __MVS__
++    /* z/OS: Check if this is a dataset (starts with //) */
++    if(is_dataset(per->uploadfile)) {
++      /* Use fopen for z/OS datasets with record mode */
++      per->infp = fopen(per->uploadfile, "rb,type=record");
++      if(!per->infp) {
++        helpf("cannot open dataset '%s'", per->uploadfile);
++        return CURLE_READ_ERROR;
++      }
++      per->use_fopen = TRUE;
++      per->infd = fileno(per->infp);  /* Get fd for compatibility */
++      per->infdopen = TRUE;
++      
++      /* Cannot determine size for datasets - they are record-based.
++       * Leave uploadfilesize as -1 to indicate unknown size. */
++      uploadfilesize = -1;
++    }
++    else
++#endif
++    {
+     /* VMS Note:
+      *
+      * Reading binary from files can be a problem... Only FIXED, VAR
+@@ -299,6 +337,7 @@ static CURLcode pre_transfer(struct per_transfer *per)
+     /* we ignore file size for char/block devices, sockets, etc. */
+     if(S_ISREG(fileinfo.st_mode))
+       uploadfilesize = fileinfo.st_size;
++    }  /* end of non-dataset file handling */
+ 
+ #ifdef DEBUGBUILD
+     /* allow dedicated test cases to override */
+@@ -620,7 +659,16 @@ static CURLcode post_per_transfer(struct per_transfer *per,
+   }
+   else {
+     if(per->infdopen) {
+-      close(per->infd);
++#ifdef __MVS__
++      if(per->use_fopen && per->infp) {
++        fclose(per->infp);
++        per->infp = NULL;
++      }
++      else
++#endif
++      {
++        close(per->infd);
++      }
+     }
+   }
+ 
+@@ -1061,6 +1109,15 @@ static CURLcode setup_outfile(struct OperationConfig *config,
+       errorf("cannot open '%s'", per->outfile);
+       return CURLE_WRITE_ERROR;
+     }
++#ifdef __MVS__
++    if(config->local_ccsid) {
++      int fd = fileno(file);
++      if(config->local_ccsid == 65535)
++        __chgfdccsid(fd, FT_BINARY);
++      else
++        __chgfdccsid(fd, (int)config->local_ccsid);
++    }
++#endif
+     outs->fopened = TRUE;
+     outs->stream = file;
+     outs->init = config->resume_from;
+@@ -1260,6 +1317,8 @@ static CURLcode single_transfer(struct OperationConfig *config,
+         curl_easy_cleanup(curl);
+         return CURLE_FAILED_INIT;
+       }
++      if(config->upload_encoding && !strcasecmp(config->upload_encoding, "ascii"))
++        per->convert_ascii = TRUE;
+     }
+     per->config = config;
+     per->curl = curl;

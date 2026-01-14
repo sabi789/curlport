@@ -1,0 +1,20 @@
+diff --git i/src/tool_cfgable.h w/src/tool_cfgable.h
+index 329691e..669bea1 100644
+--- i/src/tool_cfgable.h
++++ w/src/tool_cfgable.h
+@@ -178,6 +178,7 @@ struct OperationConfig {
+   long proxy_ssl_version;
+   long ip_version;
+   long create_file_mode; /* CURLOPT_NEW_FILE_PERMS */
++  unsigned long local_ccsid;
+   long low_speed_limit;
+   long low_speed_time;
+   long ip_tos;         /* IP Type of Service */
+@@ -219,6 +220,7 @@ struct OperationConfig {
+     CLOBBER_ALWAYS /* If the file exists, always overwrite it */
+   } file_clobber_mode;
+   unsigned char upload_flags; /* Bitmask for --upload-flags */
++  char *upload_encoding;      /* --upload-encoding */
+   unsigned short porttouse;
+   unsigned char ssl_version;     /* 0 - 4, 0 being default */
+   unsigned char ssl_version_max; /* 0 - 4, 0 being default */

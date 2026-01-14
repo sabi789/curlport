@@ -1,0 +1,18 @@
+diff --git i/src/tool_listhelp.c w/src/tool_listhelp.c
+index 9a8a7d9..5637776 100644
+--- i/src/tool_listhelp.c
++++ w/src/tool_listhelp.c
+@@ -821,9 +821,12 @@ const struct helptxt helptext[] = {
+   { "    --unix-socket <path>",
+     "Connect through this Unix domain socket",
+     CURLHELP_CONNECTION },
++  { "    --upload-encoding <encoding>",
++    "Encoding to use for upload (e.g. ascii)",
++    CURLHELP_UPLOAD },
+   { "-T, --upload-file <file>",
+     "Transfer local FILE to destination",
+-    CURLHELP_IMPORTANT | CURLHELP_UPLOAD },
++    CURLHELP_UPLOAD },
+   { "    --upload-flags <flags>",
+     "IMAP upload behavior",
+     CURLHELP_CURL | CURLHELP_OUTPUT },
