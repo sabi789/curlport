@@ -1,11 +1,12 @@
 diff --git i/src/tool_cb_wrt.c w/src/tool_cb_wrt.c
-index 1b76565..d890b15 100644
+index 1b76565..3c23cb1 100644
 --- i/src/tool_cb_wrt.c
 +++ w/src/tool_cb_wrt.c
-@@ -28,6 +28,13 @@
+@@ -28,6 +28,14 @@
  #include "tool_cb_wrt.h"
  #include "tool_operate.h"
  
++
 +#ifdef __MVS__
 +#include <zos.h>
 +#include <fcntl.h>
@@ -16,7 +17,7 @@ index 1b76565..d890b15 100644
  #ifdef _WIN32
  #define OPENMODE S_IREAD | S_IWRITE
  #else
-@@ -99,6 +106,17 @@ bool tool_create_output_file(struct OutStruct *outs,
+@@ -99,6 +107,17 @@ bool tool_create_output_file(struct OutStruct *outs,
            curlx_strerror(errno, errbuf, sizeof(errbuf)));
      return FALSE;
    }
@@ -34,11 +35,33 @@ index 1b76565..d890b15 100644
    outs->s_isreg = TRUE;
    outs->fopened = TRUE;
    outs->stream = file;
-@@ -308,6 +326,16 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+@@ -308,6 +327,45 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
    if(!outs->stream && !tool_create_output_file(outs, per->config))
      return CURL_WRITEFUNC_ERROR;
  
 +#ifdef __MVS__
++  /* Handle download encoding conversion */
++  char *converted_buffer = NULL;
++  if(config->download_encoding && per->encoding_ctx) {
++    /* Convert downloaded data using encoding context */
++    size_t size = bytes;
++    converted_buffer = malloc(bytes * 2); /* Allow for expansion */
++    if(converted_buffer) {
++      memcpy(converted_buffer, buffer, bytes);
++      if(encoding_convert(per->encoding_ctx, converted_buffer, &size, 
++                          bytes * 2) == 0) {
++        buffer = converted_buffer;
++        bytes = size;
++      }
++      else {
++        /* Conversion failed, free buffer and use original */
++        free(converted_buffer);
++        converted_buffer = NULL;
++      }
++    }
++  }
++  
++  /* Handle CCSID tagging (backward compatibility with --tag) */
 +  if(config->local_ccsid == 0 && outs->bytes == 0 && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
 +    int ccsid = __guess_ue(buffer, bytes, NULL, 0);
 +    if(ccsid == 65535)
@@ -46,8 +69,30 @@ index 1b76565..d890b15 100644
 +    else
 +      __chgfdccsid(fileno(outs->stream), ccsid);
 +  }
++  else if(config->local_ccsid && outs->bytes == 0) {
++    /* Apply explicit CCSID from --download-encoding/--tag */
++    if(config->local_ccsid == 65535)
++      __chgfdccsid(fileno(outs->stream), FT_BINARY);
++    else
++      __chgfdccsid(fileno(outs->stream), (int)config->local_ccsid);
++  }
 +#endif
 +
    if(is_tty && (outs->bytes < 2000) && !config->terminal_binary_ok) {
      /* binary output to terminal? */
      if(memchr(buffer, 0, bytes)) {
+@@ -342,6 +400,14 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+     /* we added this amount of data to the output */
+     outs->bytes += bytes;
+ 
++#ifdef __MVS__
++  /* Free converted buffer if it was allocated */
++  if(converted_buffer) {
++    free(converted_buffer);
++    converted_buffer = NULL;
++  }
++#endif
++
+   if(config->readbusy) {
+     config->readbusy = FALSE;
+     curl_easy_pause(per->curl, CURLPAUSE_CONT);

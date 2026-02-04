@@ -1,8 +1,18 @@
 diff --git i/src/tool_listhelp.c w/src/tool_listhelp.c
-index 9a8a7d9..5637776 100644
+index 9a8a7d9..28d37f2 100644
 --- i/src/tool_listhelp.c
 +++ w/src/tool_listhelp.c
-@@ -821,9 +821,12 @@ const struct helptxt helptext[] = {
+@@ -166,6 +166,9 @@ const struct helptxt helptext[] = {
+   { "    --doh-url <URL>",
+     "Resolve hostnames over DoH",
+     CURLHELP_DNS },
++  { "    --download-encoding <encoding>",
++    "Encoding to use for download (e.g. ascii)",
++    CURLHELP_OUTPUT },
+   { "    --dump-ca-embed",
+     "Write the embedded CA bundle to standard output",
+     CURLHELP_HTTP | CURLHELP_PROXY | CURLHELP_TLS },
+@@ -821,9 +824,12 @@ const struct helptxt helptext[] = {
    { "    --unix-socket <path>",
      "Connect through this Unix domain socket",
      CURLHELP_CONNECTION },

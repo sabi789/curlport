@@ -1,22 +1,32 @@
 diff --git i/src/tool_operate.c w/src/tool_operate.c
-index 4bc98a1..03c9dad 100644
+index 4bc98a1..ee6bb1a 100644
 --- i/src/tool_operate.c
 +++ w/src/tool_operate.c
-@@ -23,6 +23,13 @@
+@@ -23,6 +23,14 @@
   ***************************************************************************/
  #include "tool_setup.h"
  
++
 +#ifdef __MVS__
 +#include <zos.h>
 +#include <fcntl.h>
 +#include <_Ccsid.h>
-+
++#include <iconv.h>
 +#endif
 +
  #ifdef HAVE_LOCALE_H
  #  include <locale.h>
  #endif
-@@ -244,6 +251,17 @@ static struct per_transfer *del_per_transfer(struct per_transfer *per)
+@@ -86,6 +94,8 @@
+ CURL_EXTERN CURLcode curl_easy_perform_ev(CURL *easy);
+ #endif
+ 
++
++
+ #ifdef CURL_CA_EMBED
+ #ifndef CURL_DECLARED_CURL_CA_EMBED
+ #define CURL_DECLARED_CURL_CA_EMBED
+@@ -244,6 +254,17 @@ static struct per_transfer *del_per_transfer(struct per_transfer *per)
    return n;
  }
  
@@ -34,7 +44,7 @@ index 4bc98a1..03c9dad 100644
  static CURLcode pre_transfer(struct per_transfer *per)
  {
    curl_off_t uploadfilesize = -1;
-@@ -251,6 +269,26 @@ static CURLcode pre_transfer(struct per_transfer *per)
+@@ -251,6 +272,26 @@ static CURLcode pre_transfer(struct per_transfer *per)
    CURLcode result = CURLE_OK;
  
    if(per->uploadfile && !stdin_upload(per->uploadfile)) {
@@ -61,7 +71,7 @@ index 4bc98a1..03c9dad 100644
      /* VMS Note:
       *
       * Reading binary from files can be a problem... Only FIXED, VAR
-@@ -299,6 +337,7 @@ static CURLcode pre_transfer(struct per_transfer *per)
+@@ -299,6 +340,7 @@ static CURLcode pre_transfer(struct per_transfer *per)
      /* we ignore file size for char/block devices, sockets, etc. */
      if(S_ISREG(fileinfo.st_mode))
        uploadfilesize = fileinfo.st_size;
@@ -69,7 +79,7 @@ index 4bc98a1..03c9dad 100644
  
  #ifdef DEBUGBUILD
      /* allow dedicated test cases to override */
-@@ -620,7 +659,16 @@ static CURLcode post_per_transfer(struct per_transfer *per,
+@@ -620,7 +662,16 @@ static CURLcode post_per_transfer(struct per_transfer *per,
    }
    else {
      if(per->infdopen) {
@@ -87,7 +97,22 @@ index 4bc98a1..03c9dad 100644
      }
    }
  
-@@ -1061,6 +1109,15 @@ static CURLcode setup_outfile(struct OperationConfig *config,
+@@ -763,6 +814,14 @@ skip:
+   curlx_free(per->url);
+   curlx_free(per->outfile);
+   curlx_free(per->uploadfile);
++#ifdef __MVS__
++  /* Clean up encoding context */
++  if(per->encoding_ctx) {
++    encoding_cleanup((encoding_ctx_t*)per->encoding_ctx);
++    free(per->encoding_ctx);
++    per->encoding_ctx = NULL;
++  }
++#endif
+   curl_slist_free_all(per->hdrcbdata.headlist);
+   per->hdrcbdata.headlist = NULL;
+   return result;
+@@ -1061,6 +1120,15 @@ static CURLcode setup_outfile(struct OperationConfig *config,
        errorf("cannot open '%s'", per->outfile);
        return CURLE_WRITE_ERROR;
      }
@@ -103,12 +128,216 @@ index 4bc98a1..03c9dad 100644
      outs->fopened = TRUE;
      outs->stream = file;
      outs->init = config->resume_from;
-@@ -1260,6 +1317,8 @@ static CURLcode single_transfer(struct OperationConfig *config,
+@@ -1260,7 +1328,35 @@ static CURLcode single_transfer(struct OperationConfig *config,
          curl_easy_cleanup(curl);
          return CURLE_FAILED_INIT;
        }
 +      if(config->upload_encoding && !strcasecmp(config->upload_encoding, "ascii"))
 +        per->convert_ascii = TRUE;
++#ifdef __MVS__
++      /* Initialize encoding context for z/OS UNIX file upload */
++      if(config->upload_encoding_unix && !per->convert_ascii) {
++        per->encoding_ctx = malloc(sizeof(encoding_ctx_t));
++        if(per->encoding_ctx) {
++          if(encoding_init((encoding_ctx_t*)per->encoding_ctx, 
++                          config->upload_encoding_unix, 1) != 0) {
++            free(per->encoding_ctx);
++            per->encoding_ctx = NULL;
++          }
++        }
++      }
++#endif
      }
++#ifdef __MVS__
++    /* Initialize encoding context for download */
++    if(config->download_encoding) {
++      per->encoding_ctx = malloc(sizeof(encoding_ctx_t));
++      if(per->encoding_ctx) {
++        if(encoding_init((encoding_ctx_t*)per->encoding_ctx, 
++                        config->download_encoding, 0) != 0) {
++          free(per->encoding_ctx);
++          per->encoding_ctx = NULL;
++        }
++      }
++    }
++#endif
      per->config = config;
      per->curl = curl;
+     per->urlnum = u->num;
+@@ -2348,3 +2444,176 @@ CURLcode operate(int argc, argv_item_t argv[])
+ 
+   return result;
+ }
++
++
++#ifdef __MVS__
++/* Encoding conversion functions for z/OS */
++
++/* Parse encoding string and determine conversion mode */
++encoding_mode_t encoding_parse_mode(const char *encoding_str)
++{
++  /* Explicit NULL check at function start */
++  if(!encoding_str)
++    return ENCODING_NONE;
++    
++  if(!strcasecmp(encoding_str, "auto"))
++    return ENCODING_AUTO;
++  else if(!strcasecmp(encoding_str, "binary"))
++    return ENCODING_BINARY;
++  else if(!strcasecmp(encoding_str, "ascii") || 
++          !strcasecmp(encoding_str, "e2a"))
++    return ENCODING_E2A;
++  else if(!strcasecmp(encoding_str, "a2e"))
++    return ENCODING_A2E;
++  else
++    return ENCODING_ICONV;
++}
++
++/* Get CCSID from encoding string */
++unsigned short encoding_get_ccsid(const char *encoding_str)
++{
++  if(!encoding_str)
++    return 0;
++    
++  if(!strcasecmp(encoding_str, "auto"))
++    return 0;
++  else if(!strcasecmp(encoding_str, "binary"))
++    return 65535;
++  else {
++    unsigned short ccsid = __toCcsid((char*)encoding_str);
++    return ccsid;
++  }
++}
++
++/* Initialize encoding context from encoding string */
++int encoding_init(encoding_ctx_t *ctx, const char *encoding_str, 
++                  int is_upload)
++{
++  if(!ctx)
++    return -1;
++    
++  memset(ctx, 0, sizeof(encoding_ctx_t));
++  
++  ctx->mode = encoding_parse_mode(encoding_str);
++  ctx->ccsid = encoding_get_ccsid(encoding_str);
++  
++  if(ctx->mode == ENCODING_ICONV && encoding_str) {
++    if(is_upload) {
++      ctx->from_encoding = strdup("IBM-1047");
++      ctx->to_encoding = strdup(encoding_str);
++    }
++    else {
++      ctx->from_encoding = strdup(encoding_str);
++      ctx->to_encoding = strdup("IBM-1047");
++    }
++    
++    if(!ctx->from_encoding || !ctx->to_encoding) {
++      encoding_cleanup(ctx);
++      return -1;
++    }
++    
++    iconv_t cd = iconv_open(ctx->to_encoding, ctx->from_encoding);
++    if(cd == (iconv_t)-1) {
++      encoding_cleanup(ctx);
++      return -1;
++    }
++    ctx->iconv_cd = (void*)cd;
++  }
++  
++  return 0;
++}
++
++/* Convert buffer using encoding context */
++int encoding_convert(encoding_ctx_t *ctx, char *buffer, size_t *size,
++                     size_t max_size)
++{
++  if(!ctx || !buffer || !size)
++    return -1;
++    
++  switch(ctx->mode) {
++  case ENCODING_NONE:
++  case ENCODING_AUTO:
++  case ENCODING_BINARY:
++    return 0;
++    
++  case ENCODING_E2A:
++    __e2a_s(buffer);
++    return 0;
++    
++  case ENCODING_A2E:
++    __a2e_s(buffer);
++    return 0;
++    
++  case ENCODING_ICONV: {
++    if(!ctx->iconv_cd)
++      return -1;
++      
++    iconv_t cd = (iconv_t)ctx->iconv_cd;
++    char *outbuf = malloc(max_size);
++    if(!outbuf)
++      return -1;
++    
++    /* Save original buffer content in case conversion fails */
++    char *backup_buffer = malloc(*size);
++    if(!backup_buffer) {
++      free(outbuf);
++      return -1;
++    }
++    memcpy(backup_buffer, buffer, *size);
++      
++    char *inptr = buffer;
++    char *outptr = outbuf;
++    size_t inleft = *size;
++    size_t outleft = max_size;
++    
++    /* Reset conversion state */
++    iconv(cd, NULL, NULL, NULL, NULL);
++    size_t result = iconv(cd, &inptr, &inleft, &outptr, &outleft);
++    
++    if(result == (size_t)-1) {
++      /* Conversion failed - restore original buffer */
++      memcpy(buffer, backup_buffer, *size);
++      free(backup_buffer);
++      free(outbuf);
++      return -1;
++    }
++    
++    /* Conversion succeeded - copy converted data to buffer */
++    size_t converted_size = max_size - outleft;
++    memcpy(buffer, outbuf, converted_size);
++    *size = converted_size;
++    
++    free(backup_buffer);
++    free(outbuf);
++    return 0;
++  }
++  }
++  
++  return -1;
++}
++
++/* Clean up encoding context */
++void encoding_cleanup(encoding_ctx_t *ctx)
++{
++  if(!ctx)
++    return;
++    
++  if(ctx->from_encoding) {
++    free(ctx->from_encoding);
++    ctx->from_encoding = NULL;
++  }
++  
++  if(ctx->to_encoding) {
++    free(ctx->to_encoding);
++    ctx->to_encoding = NULL;
++  }
++  
++  if(ctx->iconv_cd) {
++    iconv_close((iconv_t)ctx->iconv_cd);
++    ctx->iconv_cd = NULL;
++  }
++  
++  memset(ctx, 0, sizeof(encoding_ctx_t));
++}
++#endif /* __MVS__ */
++

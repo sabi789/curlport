@@ -1,8 +1,46 @@
 diff --git i/src/tool_operate.h w/src/tool_operate.h
-index 8c30d3b..ca4b1be 100644
+index 8c30d3b..0388a9c 100644
 --- i/src/tool_operate.h
 +++ w/src/tool_operate.h
-@@ -46,6 +46,7 @@ struct per_transfer {
+@@ -29,6 +29,37 @@
+ #include "tool_cb_prg.h"
+ #include "tool_sdecls.h"
+ 
++
++#ifdef __MVS__
++/* Encoding conversion modes */
++typedef enum {
++  ENCODING_NONE = 0,
++  ENCODING_AUTO,
++  ENCODING_BINARY,
++  ENCODING_E2A,
++  ENCODING_A2E,
++  ENCODING_ICONV
++} encoding_mode_t;
++
++/* Encoding conversion context */
++typedef struct {
++  encoding_mode_t mode;
++  char *from_encoding;
++  char *to_encoding;
++  void *iconv_cd;
++  unsigned short ccsid;
++} encoding_ctx_t;
++
++/* Encoding function declarations */
++encoding_mode_t encoding_parse_mode(const char *encoding_str);
++unsigned short encoding_get_ccsid(const char *encoding_str);
++int encoding_init(encoding_ctx_t *ctx, const char *encoding_str, 
++                  int is_upload);
++int encoding_convert(encoding_ctx_t *ctx, char *buffer, size_t *size,
++                     size_t max_size);
++void encoding_cleanup(encoding_ctx_t *ctx);
++#endif
++
+ struct per_transfer {
+   /* double linked */
+   struct per_transfer *next;
+@@ -46,6 +77,7 @@ struct per_transfer {
    curl_off_t urlnum; /* the index of the given URL */
    char *outfile;
    int infd;
@@ -10,12 +48,16 @@ index 8c30d3b..ca4b1be 100644
    struct ProgressData progressbar;
    struct OutStruct outs;
    struct OutStruct heads;
-@@ -69,6 +70,8 @@ struct per_transfer {
+@@ -69,7 +101,12 @@ struct per_transfer {
    char *uploadfile;
    char errorbuffer[CURL_ERROR_SIZE];
    BIT(infdopen); /* TRUE if infd needs closing */
 +  BIT(use_fopen); /* TRUE if using fopen/fread instead of open/read */
 +  BIT(convert_ascii); /* TRUE if converting to ASCII on upload */
    BIT(noprogress);
++#ifdef __MVS__
++  void *encoding_ctx; /* encoding conversion context for z/OS */
++#endif
    BIT(was_last_header_empty);
  
+   BIT(added); /* set TRUE when added to the multi handle */
