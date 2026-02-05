@@ -1,5 +1,5 @@
 diff --git i/src/tool_operate.c w/src/tool_operate.c
-index 4bc98a1..ee6bb1a 100644
+index 4bc98a1..a4bd367 100644
 --- i/src/tool_operate.c
 +++ w/src/tool_operate.c
 @@ -23,6 +23,14 @@
@@ -164,7 +164,7 @@ index 4bc98a1..ee6bb1a 100644
      per->config = config;
      per->curl = curl;
      per->urlnum = u->num;
-@@ -2348,3 +2444,176 @@ CURLcode operate(int argc, argv_item_t argv[])
+@@ -2348,3 +2444,181 @@ CURLcode operate(int argc, argv_item_t argv[])
  
    return result;
  }
@@ -203,6 +203,11 @@ index 4bc98a1..ee6bb1a 100644
 +    return 0;
 +  else if(!strcasecmp(encoding_str, "binary"))
 +    return 65535;
++  else if(!strcasecmp(encoding_str, "ascii") || 
++          !strcasecmp(encoding_str, "e2a"))
++    return 819;  /* ISO 8859-1 (ASCII-compatible) */
++  else if(!strcasecmp(encoding_str, "a2e"))
++    return 1047; /* IBM EBCDIC */
 +  else {
 +    unsigned short ccsid = __toCcsid((char*)encoding_str);
 +    return ccsid;
