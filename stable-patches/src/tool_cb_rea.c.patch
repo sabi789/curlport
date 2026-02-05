@@ -1,5 +1,5 @@
 diff --git i/src/tool_cb_rea.c w/src/tool_cb_rea.c
-index 5ad4f7e..69b87d1 100644
+index 5ad4f7e..1f73224 100644
 --- i/src/tool_cb_rea.c
 +++ w/src/tool_cb_rea.c
 @@ -136,15 +136,31 @@ size_t tool_read_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
@@ -42,14 +42,27 @@ index 5ad4f7e..69b87d1 100644
      }
    }
    if((per->uploadfilesize != -1) &&
-@@ -156,6 +172,13 @@ size_t tool_read_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+@@ -156,6 +172,26 @@ size_t tool_read_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
            delta);
      rc = (ssize_t)(per->uploadfilesize - per->uploadedsofar);
    }
 +
 +#ifdef __MVS__
-+  if(rc > 0 && per->convert_ascii) {
-+    __e2a_s(buffer);
++  if(rc > 0) {
++    struct OperationConfig *config = per->config;
++    
++    /* Handle dataset encoding (backward compatibility) */
++    if(per->convert_ascii) {
++      __e2a_s(buffer);
++    }
++    /* Handle z/OS UNIX file encoding */
++    else if(config->upload_encoding_unix && per->encoding_ctx) {
++      size_t size = (size_t)rc;
++      if(encoding_convert(per->encoding_ctx, buffer, &size, 
++                          CURL_MAX_WRITE_SIZE) == 0) {
++        rc = (ssize_t)size;
++      }
++    }
 +  }
 +#endif
 +

@@ -1,12 +1,14 @@
 diff --git i/src/tool_cfgable.c w/src/tool_cfgable.c
-index b907b24..d00226f 100644
+index b907b24..ec6b9c3 100644
 --- i/src/tool_cfgable.c
 +++ w/src/tool_cfgable.c
-@@ -157,7 +157,9 @@ static void free_config_fields(struct OperationConfig *config)
+@@ -157,7 +157,11 @@ static void free_config_fields(struct OperationConfig *config)
    tool_safefree(config->krblevel);
    tool_safefree(config->oauth_bearer);
    tool_safefree(config->sasl_authzid);
 +  tool_safefree(config->upload_encoding);
++  tool_safefree(config->download_encoding);
++  tool_safefree(config->upload_encoding_unix);
    tool_safefree(config->unix_socket_path);
 +  tool_safefree(config->haproxy_clientip);
    tool_safefree(config->writeout);
