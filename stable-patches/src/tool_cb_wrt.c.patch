@@ -66,7 +66,7 @@ index 1b76565..2b9287e 100644
 +  
 +  /* Handle CCSID tagging (backward compatibility with --tag) */
 +  if(config->local_ccsid == 0 && outs->bytes == 0 && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
-+    if(__getfdccsid(fileno(outs->stream)) == 0) {
++    if(__getfdccsid(fileno(outs->stream)) <= 0) {
 +      int ccsid = __guess_ue(buffer, bytes, NULL, 0);
 +      if(ccsid == 65535)
 +        __chgfdccsid(fileno(outs->stream), FT_BINARY);

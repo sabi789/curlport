@@ -27,10 +27,10 @@ index 0000000..3e67aed
 +files from a system that uses a different character encoding, such as EBCDIC on z/OS.
 +
 +Supported encodings include:
-+- `ascii`: Convert from ASCII/ISO-8859-1 to the local encoding.
-+- `binary`: No conversion (transfer as binary).
-+- `auto`: Attempt to automatically detect the encoding.
-+- `e2a`: Convert from EBCDIC to ASCII.
-+- `a2e`: Convert from ASCII to EBCDIC.
++- `ascii`: No conversion, tag the output file as CCSID 819 (ASCII).
++- `binary`: No conversion, tag the output file as binary (CCSID 65535).
++- `auto`: Attempt to automatically detect the encoding and tag accordingly.
++- `e2a`: Alias for `ascii`.
++- `a2e`: Convert the downloaded ASCII content to EBCDIC (CCSID 1047).
 +
 +This option replaces `--tag`.
