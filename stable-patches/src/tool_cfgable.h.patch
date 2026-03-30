@@ -1,7 +1,7 @@
-diff --git i/src/tool_cfgable.h w/src/tool_cfgable.h
+diff --git a/src/tool_cfgable.h b/src/tool_cfgable.h
 index 329691e..1d7116f 100644
---- i/src/tool_cfgable.h
-+++ w/src/tool_cfgable.h
+--- a/src/tool_cfgable.h
++++ b/src/tool_cfgable.h
 @@ -178,6 +178,9 @@ struct OperationConfig {
    long proxy_ssl_version;
    long ip_version;

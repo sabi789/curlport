@@ -1,7 +1,7 @@
-diff --git i/src/tool_listhelp.c w/src/tool_listhelp.c
+diff --git a/src/tool_listhelp.c b/src/tool_listhelp.c
 index 9a8a7d9..28d37f2 100644
---- i/src/tool_listhelp.c
-+++ w/src/tool_listhelp.c
+--- a/src/tool_listhelp.c
++++ b/src/tool_listhelp.c
 @@ -166,6 +166,9 @@ const struct helptxt helptext[] = {
    { "    --doh-url <URL>",
      "Resolve hostnames over DoH",
