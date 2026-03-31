@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1465 b/tests/data/test1465
+index 2c4804d..a2f395a 100644
+--- a/tests/data/test1465
++++ b/tests/data/test1465
+@@ -30,7 +30,7 @@ http
+ --libcurl for POST with binary content
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://%HOSTIP:%HTTPPORT/we/want/%TESTNUMBER --libcurl %LOGDIR/test%TESTNUMBER.c --data-binary @%LOGDIR/%TESTNUMBER-upload
+@@ -65,6 +65,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

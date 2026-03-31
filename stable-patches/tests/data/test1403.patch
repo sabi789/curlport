@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1403 b/tests/data/test1403
+index c3416a3..99db928 100644
+--- a/tests/data/test1403
++++ b/tests/data/test1403
+@@ -33,7 +33,7 @@ http
+ --libcurl for GET with query
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://%HOSTIP:%HTTPPORT/we/want/%TESTNUMBER --libcurl %LOGDIR/test%TESTNUMBER.c -G -d "foo=bar" -d "baz=quux"
+@@ -58,6 +58,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

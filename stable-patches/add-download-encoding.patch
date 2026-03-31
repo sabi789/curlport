@@ -1,0 +1,36 @@
+diff --git a/docs/cmdline-opts/download-encoding.md b/docs/cmdline-opts/download-encoding.md
+new file mode 100644
+index 0000000..3e67aed
+--- /dev/null
++++ b/docs/cmdline-opts/download-encoding.md
+@@ -0,0 +1,30 @@
++---
++c: Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
++SPDX-License-Identifier: curl
++Long: download-encoding
++Arg: <encoding>
++Help: Encoding to use for download (e.g. ascii)
++Category: output
++Added: 8.18.0
++Multi: single
++Scope: global
++See-also:
++  - upload-encoding
++  - tag
++Example:
++  - --download-encoding ascii $URL
++---
++
++# `--download-encoding`
++
++Specify the encoding to use for the downloaded content. This is useful when downloading
++files from a system that uses a different character encoding, such as EBCDIC on z/OS.
++
++Supported encodings include:
++- `ascii`: No conversion, tag the output file as CCSID 819 (ASCII).
++- `binary`: No conversion, tag the output file as binary (CCSID 65535).
++- `auto`: Attempt to automatically detect the encoding and tag accordingly.
++- `e2a`: Alias for `ascii`.
++- `a2e`: Convert the downloaded ASCII content to EBCDIC (CCSID 1047).
++
++This option replaces `--tag`.

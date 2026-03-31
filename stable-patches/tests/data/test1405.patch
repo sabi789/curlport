@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1405 b/tests/data/test1405
+index 853c967..7e7154f 100644
+--- a/tests/data/test1405
++++ b/tests/data/test1405
+@@ -37,7 +37,7 @@ ftp
+ --libcurl for FTP with quote ops
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ ftp://%HOSTIP:%FTPPORT/%TESTNUMBER -Q "NOOP 1" -Q "+NOOP 2" -Q "-NOOP 3" -Q "*FAIL" -Q "+*FAIL HARD" --libcurl %LOGDIR/test%TESTNUMBER.c
+@@ -77,6 +77,8 @@ $_ = '' if /CURLOPT_HTTP09_ALLOWED/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

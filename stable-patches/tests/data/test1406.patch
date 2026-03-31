@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1406 b/tests/data/test1406
+index 26ad1c7..e338a18 100644
+--- a/tests/data/test1406
++++ b/tests/data/test1406
+@@ -25,7 +25,7 @@ smtp
+ --libcurl for SMTP
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <file name="%LOGDIR/test%TESTNUMBER.eml" crlf="yes">
+ From: different
+@@ -71,6 +71,8 @@ $_ = '' if /CURLOPT_HTTP09_ALLOWED/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

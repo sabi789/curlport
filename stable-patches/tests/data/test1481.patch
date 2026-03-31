@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1481 b/tests/data/test1481
+index 98c018b..aaf1334 100644
+--- a/tests/data/test1481
++++ b/tests/data/test1481
+@@ -34,7 +34,7 @@ SSL
+ --libcurl with TLS version options
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://moo/ --libcurl %LOGDIR/test%TESTNUMBER.c --tls-max 1.3 --proxy-tlsv1 -x http://%HOSTIP:%HTTPPORT
+@@ -61,6 +61,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_HTTP09_ALLOWED/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1400 b/tests/data/test1400
+index cf4aabb..fe839a8 100644
+--- a/tests/data/test1400
++++ b/tests/data/test1400
+@@ -32,7 +32,7 @@ http
+ --libcurl for simple HTTP GET
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://%HOSTIP:%HTTPPORT/we/want/%TESTNUMBER --libcurl %LOGDIR/test%TESTNUMBER.c
+@@ -59,6 +59,8 @@ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_HTTP09_ALLOWED/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

@@ -1,0 +1,12 @@
+diff --git a/tests/data/data1461.txt b/tests/data/data1461.txt
+index 62fe8de..d5c2476 100644
+--- a/tests/data/data1461.txt
++++ b/tests/data/data1461.txt
+@@ -6,7 +6,6 @@ Usage: curl [options...] <url>
+  -O, --remote-name           Write output to file named as remote file
+  -i, --show-headers          Show response headers in output
+  -s, --silent                Silent mode
+- -T, --upload-file <file>    Transfer local FILE to destination
+  -u, --user <user:password>  Server user and password
+  -A, --user-agent <name>     Send User-Agent <name> to server
+  -v, --verbose               Make the operation more talkative

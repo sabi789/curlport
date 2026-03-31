@@ -1,0 +1,14 @@
+diff --git a/tests/runtests.pl b/tests/runtests.pl
+index c531409..e031134 100755
+--- a/tests/runtests.pl
++++ b/tests/runtests.pl
+@@ -567,6 +567,9 @@ sub checksystemfeatures {
+                 $pwd = sys_native_current_path();
+                 $feature{"win32"} = 1;
+             }
++            if($curl =~ /os390|zos|openedition/i) {
++                $feature{"zos"} = 1;
++            }
+             if($curl =~ /cygwin|msys/i) {
+                 $feature{"cygwin"} = 1;
+             }

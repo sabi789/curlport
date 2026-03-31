@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1407 b/tests/data/test1407
+index 1436786..0581f7d 100644
+--- a/tests/data/test1407
++++ b/tests/data/test1407
+@@ -26,7 +26,7 @@ pop3
+ --libcurl for POP3 LIST one message
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ pop3://%HOSTIP:%POP3PORT/%TESTNUMBER -l -u user:secret --libcurl %LOGDIR/test%TESTNUMBER.c
+@@ -60,6 +60,8 @@ $_ = '' if /CURLOPT_HTTP09_ALLOWED/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

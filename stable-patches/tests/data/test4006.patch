@@ -1,0 +1,63 @@
+diff --git a/tests/data/test4006 b/tests/data/test4006
+new file mode 100644
+index 0000000..498f8fc
+--- /dev/null
++++ b/tests/data/test4006
+@@ -0,0 +1,57 @@
++<?xml version="1.0" encoding="US-ASCII"?>
++<testcase>
++<info>
++<keywords>
++HTTP
++HTTP GET
++z/OS tagging
++</keywords>
++</info>
++
++# Server-side
++<reply>
++<data crlf="headers">
++HTTP/1.1 200 OK
++Date: Tue, 09 Nov 2010 14:49:00 GMT
++Server: test-server/fake
++Content-Length: 6
++Connection: close
++Content-Type: text/plain
++
++-foo-
++</data>
++</reply>
++
++# Client-side
++<client>
++<server>
++http
++</server>
++<features>
++zos
++</features>
++<name>
++z/OS tagging: existing IBM-1047 file stays IBM-1047 even with --tag binary
++</name>
++<precheck>
++rm -f %LOGDIR/curl%TESTNUMBER.out && touch %LOGDIR/curl%TESTNUMBER.out && chtag -t -c IBM-1047 %LOGDIR/curl%TESTNUMBER.out
++</precheck>
++<command>
++http://%HOSTIP:%HTTPPORT/%TESTNUMBER --tag binary
++</command>
++</client>
++
++# Verify data after the test has been "shot"
++<verify>
++<postcheck>
++ls -T %LOGDIR/curl%TESTNUMBER.out | grep "^b "
++</postcheck>
++<protocol crlf="headers">
++GET /%TESTNUMBER HTTP/1.1
++Host: %HOSTIP:%HTTPPORT
++User-Agent: curl/%VERSION
++Accept: */*
++
++</protocol>
++</verify>
++</testcase>

@@ -1,7 +1,7 @@
-diff --git i/src/tool_operate.h w/src/tool_operate.h
+diff --git a/src/tool_operate.h b/src/tool_operate.h
 index 8c30d3b..0388a9c 100644
---- i/src/tool_operate.h
-+++ w/src/tool_operate.h
+--- a/src/tool_operate.h
++++ b/src/tool_operate.h
 @@ -29,6 +29,37 @@
  #include "tool_cb_prg.h"
  #include "tool_sdecls.h"

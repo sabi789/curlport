@@ -1,8 +1,8 @@
-diff --git i/src/tool_operate.c w/src/tool_operate.c
-index 4bc98a1..878fff4 100644
---- i/src/tool_operate.c
-+++ w/src/tool_operate.c
-@@ -23,6 +23,14 @@
+diff --git a/src/tool_operate.c b/src/tool_operate.c
+index 4bc98a1..97434e9 100644
+--- a/src/tool_operate.c
++++ b/src/tool_operate.c
+@@ -23,6 +23,15 @@
   ***************************************************************************/
  #include "tool_setup.h"
  
@@ -12,12 +12,13 @@ index 4bc98a1..878fff4 100644
 +#include <fcntl.h>
 +#include <_Ccsid.h>
 +#include <iconv.h>
++#include <sys/stat.h>
 +#endif
 +
  #ifdef HAVE_LOCALE_H
  #  include <locale.h>
  #endif
-@@ -86,6 +94,8 @@
+@@ -86,6 +95,8 @@
  CURL_EXTERN CURLcode curl_easy_perform_ev(CURL *easy);
  #endif
  
@@ -26,7 +27,7 @@ index 4bc98a1..878fff4 100644
  #ifdef CURL_CA_EMBED
  #ifndef CURL_DECLARED_CURL_CA_EMBED
  #define CURL_DECLARED_CURL_CA_EMBED
-@@ -244,6 +254,17 @@ static struct per_transfer *del_per_transfer(struct per_transfer *per)
+@@ -244,6 +255,17 @@ static struct per_transfer *del_per_transfer(struct per_transfer *per)
    return n;
  }
  
@@ -44,7 +45,7 @@ index 4bc98a1..878fff4 100644
  static CURLcode pre_transfer(struct per_transfer *per)
  {
    curl_off_t uploadfilesize = -1;
-@@ -251,6 +272,26 @@ static CURLcode pre_transfer(struct per_transfer *per)
+@@ -251,6 +273,26 @@ static CURLcode pre_transfer(struct per_transfer *per)
    CURLcode result = CURLE_OK;
  
    if(per->uploadfile && !stdin_upload(per->uploadfile)) {
@@ -71,7 +72,7 @@ index 4bc98a1..878fff4 100644
      /* VMS Note:
       *
       * Reading binary from files can be a problem... Only FIXED, VAR
-@@ -299,6 +340,7 @@ static CURLcode pre_transfer(struct per_transfer *per)
+@@ -299,6 +341,7 @@ static CURLcode pre_transfer(struct per_transfer *per)
      /* we ignore file size for char/block devices, sockets, etc. */
      if(S_ISREG(fileinfo.st_mode))
        uploadfilesize = fileinfo.st_size;
@@ -79,7 +80,7 @@ index 4bc98a1..878fff4 100644
  
  #ifdef DEBUGBUILD
      /* allow dedicated test cases to override */
-@@ -620,7 +662,16 @@ static CURLcode post_per_transfer(struct per_transfer *per,
+@@ -620,7 +663,16 @@ static CURLcode post_per_transfer(struct per_transfer *per,
    }
    else {
      if(per->infdopen) {
@@ -97,7 +98,29 @@ index 4bc98a1..878fff4 100644
      }
    }
  
-@@ -763,6 +814,14 @@ skip:
+@@ -713,6 +765,21 @@ static CURLcode post_per_transfer(struct per_transfer *per,
+   /* Close the outs file */
+   if(outs->fopened && outs->stream) {
+     rc = curlx_fclose(outs->stream);
++#ifdef __MVS__
++    if(config->local_ccsid && outs->s_isreg) {
++      /* Final tagging override.
++         The z/OS C runtime (LE) auto-tags untagged files as ISO8859-1 on close.
++         We re-open the file briefly to force the user's requested tag. */
++      int fd = open(outs->filename, O_RDWR | CURL_O_BINARY);
++      if(fd >= 0) {
++        if(config->local_ccsid == 65535)
++          __chgfdccsid(fd, FT_BINARY);
++        else
++          __chgfdccsid(fd, (int)config->local_ccsid);
++        close(fd);
++      }
++    }
++#endif
+     if(!result && rc) {
+       /* something went wrong in the writing process */
+       result = CURLE_WRITE_ERROR;
+@@ -763,6 +830,14 @@ skip:
    curlx_free(per->url);
    curlx_free(per->outfile);
    curlx_free(per->uploadfile);
@@ -112,7 +135,14 @@ index 4bc98a1..878fff4 100644
    curl_slist_free_all(per->hdrcbdata.headlist);
    per->hdrcbdata.headlist = NULL;
    return result;
-@@ -1061,6 +1120,15 @@ static CURLcode setup_outfile(struct OperationConfig *config,
+@@ -1055,12 +1130,23 @@ static CURLcode setup_outfile(struct OperationConfig *config,
+                              "ctx=stm", "rfm=stmlf", "rat=cr", "mrs=0");
+ #else
+     /* open file for output: */
++    bool is_new = (access(per->outfile, F_OK) != 0);
+     FILE *file = curlx_fopen(per->outfile, "ab");
+ #endif
+     if(!file) {
        errorf("cannot open '%s'", per->outfile);
        return CURLE_WRITE_ERROR;
      }
@@ -125,10 +155,11 @@ index 4bc98a1..878fff4 100644
 +        __chgfdccsid(fd, (int)config->local_ccsid);
 +    }
 +#endif
++    outs->is_new = is_new;
      outs->fopened = TRUE;
      outs->stream = file;
      outs->init = config->resume_from;
-@@ -1260,7 +1328,35 @@ static CURLcode single_transfer(struct OperationConfig *config,
+@@ -1260,7 +1346,35 @@ static CURLcode single_transfer(struct OperationConfig *config,
          curl_easy_cleanup(curl);
          return CURLE_FAILED_INIT;
        }
@@ -164,7 +195,7 @@ index 4bc98a1..878fff4 100644
      per->config = config;
      per->curl = curl;
      per->urlnum = u->num;
-@@ -2348,3 +2444,197 @@ CURLcode operate(int argc, argv_item_t argv[])
+@@ -2348,3 +2462,197 @@ CURLcode operate(int argc, argv_item_t argv[])
  
    return result;
  }

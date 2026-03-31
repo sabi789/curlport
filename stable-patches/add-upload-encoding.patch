@@ -1,0 +1,32 @@
+diff --git a/docs/cmdline-opts/upload-encoding.md b/docs/cmdline-opts/upload-encoding.md
+new file mode 100644
+index 0000000..e518133
+--- /dev/null
++++ b/docs/cmdline-opts/upload-encoding.md
+@@ -0,0 +1,26 @@
++---
++c: Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
++SPDX-License-Identifier: curl
++Long: upload-encoding
++Arg: <encoding>
++Help: Encoding to use for upload (e.g. ascii)
++Category: upload
++Added: 8.18.0
++Multi: single
++Scope: global
++See-also:
++  - download-encoding
++Example:
++  - --upload-encoding ascii -T file $URL
++---
++
++# `--upload-encoding`
++
++Specify the encoding to use for the uploaded content. This is useful when uploading
++files to a system that expects a specific character encoding.
++
++Supported encodings include:
++- `ascii`: Convert from the local encoding to ASCII/ISO-8859-1.
++- `binary`: No conversion (transfer as binary).
++
++This option is particularly relevant on z/OS systems.

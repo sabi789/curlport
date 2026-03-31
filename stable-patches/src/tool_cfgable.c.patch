@@ -1,7 +1,7 @@
-diff --git i/src/tool_cfgable.c w/src/tool_cfgable.c
+diff --git a/src/tool_cfgable.c b/src/tool_cfgable.c
 index b907b24..ec6b9c3 100644
---- i/src/tool_cfgable.c
-+++ w/src/tool_cfgable.c
+--- a/src/tool_cfgable.c
++++ b/src/tool_cfgable.c
 @@ -157,7 +157,11 @@ static void free_config_fields(struct OperationConfig *config)
    tool_safefree(config->krblevel);
    tool_safefree(config->oauth_bearer);

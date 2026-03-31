@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1420 b/tests/data/test1420
+index 57fdbe1..4aa4a53 100644
+--- a/tests/data/test1420
++++ b/tests/data/test1420
+@@ -32,7 +32,7 @@ imap
+ --libcurl for IMAP FETCH message
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ 'imap://%HOSTIP:%IMAPPORT/%TESTNUMBER/;MAILINDEX=1' -u user:secret --libcurl %LOGDIR/test%TESTNUMBER.c
+@@ -63,6 +63,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%

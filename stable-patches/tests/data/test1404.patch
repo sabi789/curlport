@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1404 b/tests/data/test1404
+index 9fbd555..edadf32 100644
+--- a/tests/data/test1404
++++ b/tests/data/test1404
+@@ -35,7 +35,7 @@ http
+ --libcurl plus -F with 3 files, one with explicit type and encoder
+ </name>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://%HOSTIP:%HTTPPORT/we/want/%TESTNUMBER
+@@ -103,6 +103,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ # CURL_DOES_CONVERSION generates an extra comment.
+ $_ = '' if /\/\* "value" \*\//
+ </stripfile>

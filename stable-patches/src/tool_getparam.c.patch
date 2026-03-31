@@ -1,7 +1,7 @@
-diff --git i/src/tool_getparam.c w/src/tool_getparam.c
+diff --git a/src/tool_getparam.c b/src/tool_getparam.c
 index 841c6ff..cd64788 100644
---- i/src/tool_getparam.c
-+++ w/src/tool_getparam.c
+--- a/src/tool_getparam.c
++++ b/src/tool_getparam.c
 @@ -23,6 +23,11 @@
   ***************************************************************************/
  #include "tool_setup.h"

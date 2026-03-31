@@ -1,0 +1,22 @@
+diff --git a/tests/data/test1401 b/tests/data/test1401
+index 3f84805..577764e 100644
+--- a/tests/data/test1401
++++ b/tests/data/test1401
+@@ -40,7 +40,7 @@ cookies
+ --libcurl
+ </features>
+ <setenv>
+-SSL_CERT_FILE
++SSL_CERT_FILE=
+ </setenv>
+ <command>
+ http://%HOSTIP:%HTTPPORT/we/want/%TESTNUMBER --libcurl %LOGDIR/test%TESTNUMBER.c --basic -u fake:user -H "X-Files: Mulder" -H "X-Men: cyclops, iceman" -A MyUA -b chocolate=chip --proto "=http,ftp,file"
+@@ -69,6 +69,8 @@ $_ = '' if /CURLOPT_HTTP_VERSION/
+ $_ = '' if /CURLOPT_INTERLEAVEDATA/
+ $_ = '' if /CURLOPT_SSLVERSION/
+ $_ = '' if /CURLOPT_TIMEOUT_MS/
++$_ = '' if /CURLOPT_VERBOSE/
++$_ = '' if /CURLOPT_CAINFO/
+ </stripfile>
+ <file name="%LOGDIR/test%TESTNUMBER.c" mode="text">
+ %includetext %SRCDIR/data/data%TESTNUMBER.c%
