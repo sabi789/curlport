@@ -1,14 +1,13 @@
 # bump: curl-version /CURL_VERSION="(.*)"/ https://curl.se/download/|re:/curl-([\d.]+).tar.gz/$1/|semver:*
 CURL_VERSION="8.19.0"
 
-
 export ZOPEN_BUILD_LINE="STABLE" # Default build line
 
 export ZOPEN_STABLE_URL="https://curl.se/download/curl-${CURL_VERSION}.tar.gz"
-export ZOPEN_STABLE_DEPS="curl gzip tar make m4 perl autoconf openssl zlib gawk zoslib check_python zusage libpsl coreutils libssh2 gettext"
+export ZOPEN_STABLE_DEPS="make m4 perl autoconf openssl zlib gawk zoslib check_python zusage libpsl coreutils libssh2 gettext"
 
 export ZOPEN_DEV_URL="https://github.com/curl/curl.git"
-export ZOPEN_DEV_DEPS="libtool automake curl gzip tar make m4 perl autoconf openssl zlib gawk zoslib check_python zusage libpsl coreutils libssh2 gettext"
+export ZOPEN_DEV_DEPS="libtool automake curl gzip tar make m4 perl openssl zlib gawk check_python zusage libpsl coreutils libssh2 gettext"
 
 export ZOPEN_EXTRA_CPPFLAGS="-I\$OPENSSL_HOME/include -I\$ZLIB_HOME/include"
 export ZOPEN_EXTRA_CFLAGS="-mzos-target=zosv2r5 -march=z13"
