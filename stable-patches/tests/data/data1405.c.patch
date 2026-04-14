@@ -1,12 +1,12 @@
 diff --git a/tests/data/data1405.c b/tests/data/data1405.c
-index e80b77e..ccff656 100644
+index ec7a4a3..f9704bd 100644
 --- a/tests/data/data1405.c
 +++ b/tests/data/data1405.c
 @@ -22,7 +22,6 @@ int main(int argc, char *argv[])
    slist3 = curl_slist_append(slist3, "*FAIL HARD");
  
-   hnd = curl_easy_init();
--  curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
-   curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
-   curl_easy_setopt(hnd, CURLOPT_URL, "ftp://%HOSTIP:%FTPPORT/%TESTNUMBER");
-   curl_easy_setopt(hnd, CURLOPT_FTP_SKIP_PASV_IP, 1L);
+   curl = curl_easy_init();
+-  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+   curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 102400L);
+   curl_easy_setopt(curl, CURLOPT_URL, "ftp://%HOSTIP:%FTPPORT/%TESTNUMBER");
+   curl_easy_setopt(curl, CURLOPT_FTP_SKIP_PASV_IP, 1L);

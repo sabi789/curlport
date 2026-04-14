@@ -1,12 +1,12 @@
 diff --git a/tests/data/data1420.c b/tests/data/data1420.c
-index 8405d8b..3ae84ec 100644
+index 5e70aaf..10fea07 100644
 --- a/tests/data/data1420.c
 +++ b/tests/data/data1420.c
 @@ -10,7 +10,6 @@ int main(int argc, char *argv[])
-   CURL *hnd;
+   CURL *curl;
  
-   hnd = curl_easy_init();
--  curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
-   curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
-   curl_easy_setopt(hnd, CURLOPT_URL, "imap://%HOSTIP:%IMAPPORT/%TESTNUMBER/;MAILINDEX=1");
-   curl_easy_setopt(hnd, CURLOPT_USERPWD, "user:secret");
+   curl = curl_easy_init();
+-  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+   curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 102400L);
+   curl_easy_setopt(curl, CURLOPT_URL, "imap://%HOSTIP:%IMAPPORT/%TESTNUMBER/;MAILINDEX=1");
+   curl_easy_setopt(curl, CURLOPT_USERPWD, "user:secret");

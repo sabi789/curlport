@@ -1,5 +1,5 @@
 diff --git a/src/tool_cb_wrt.c b/src/tool_cb_wrt.c
-index 1b76565..f87e16b 100644
+index 1d2b81e..cd4a311 100644
 --- a/src/tool_cb_wrt.c
 +++ b/src/tool_cb_wrt.c
 @@ -28,6 +28,14 @@
@@ -15,7 +15,7 @@ index 1b76565..f87e16b 100644
 +#endif
 +
  #ifdef _WIN32
- #define OPENMODE S_IREAD | S_IWRITE
+ #define OPENMODE (_S_IREAD | _S_IWRITE)
  #else
 @@ -40,6 +48,7 @@ bool tool_create_output_file(struct OutStruct *outs,
  {
@@ -25,11 +25,10 @@ index 1b76565..f87e16b 100644
    DEBUGASSERT(outs);
    DEBUGASSERT(config);
    DEBUGASSERT(fname && *fname);
-@@ -99,6 +108,23 @@ bool tool_create_output_file(struct OutStruct *outs,
+@@ -99,6 +108,22 @@ bool tool_create_output_file(struct OutStruct *outs,
            curlx_strerror(errno, errbuf, sizeof(errbuf)));
      return FALSE;
    }
-+
 +#ifdef __MVS__
 +  if(config->local_ccsid) {
 +    int fd = fileno(file);
@@ -46,10 +45,10 @@ index 1b76565..f87e16b 100644
 +#endif
 +
 +  outs->is_new = is_new;
-   outs->s_isreg = TRUE;
+   outs->regular_file = TRUE;
    outs->fopened = TRUE;
    outs->stream = file;
-@@ -308,6 +334,55 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+@@ -308,6 +333,55 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
    if(!outs->stream && !tool_create_output_file(outs, per->config))
      return CURL_WRITEFUNC_ERROR;
  
@@ -79,7 +78,7 @@ index 1b76565..f87e16b 100644
 +  }
 +  
 +  /* Handle CCSID tagging (backward compatibility with --tag) */
-+  if(config->local_ccsid == 0 && outs->bytes == 0 && outs->is_new && outs->s_isreg && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
++  if(config->local_ccsid == 0 && outs->bytes == 0 && outs->is_new && outs->regular_file && !config->resume_from && !getenv("_ENCODE_FILE_NEW")) {
 +    if(__getfdccsid(fileno(outs->stream)) <= 0) {
 +      int ccsid = __guess_ue(buffer, bytes, NULL, 0);
 +      if(ccsid == 65535)
@@ -88,7 +87,7 @@ index 1b76565..f87e16b 100644
 +        __chgfdccsid(fileno(outs->stream), ccsid);
 +    }
 +  }
-+  else if(config->local_ccsid && outs->bytes == 0 && outs->s_isreg) {
++  else if(config->local_ccsid && outs->bytes == 0 && outs->regular_file) {
 +    /* Apply explicit CCSID from --download-encoding/--tag */
 +    int rc_tag;
 +    if(config->local_ccsid == 65535) {
@@ -105,7 +104,7 @@ index 1b76565..f87e16b 100644
    if(is_tty && (outs->bytes < 2000) && !config->terminal_binary_ok) {
      /* binary output to terminal? */
      if(memchr(buffer, 0, bytes)) {
-@@ -342,6 +417,14 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
+@@ -342,6 +416,14 @@ size_t tool_write_cb(char *buffer, size_t sz, size_t nmemb, void *userdata)
      /* we added this amount of data to the output */
      outs->bytes += bytes;
  

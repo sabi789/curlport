@@ -3,7 +3,7 @@ index 9a6f3cc..3eb8ebc 100644
 --- a/src/tool_sdecls.h
 +++ b/src/tool_sdecls.h
 @@ -75,6 +75,7 @@ struct OutStruct {
-   BIT(s_isreg);
+   BIT(regular_file);
    BIT(fopened);
    BIT(out_null);
 +  BIT(is_new);
